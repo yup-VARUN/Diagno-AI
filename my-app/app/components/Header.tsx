@@ -93,6 +93,7 @@ export default function Header() {
           </Link>
         </Button>
       </div>
+      <div className="glow-line"></div>
     </header>
   )
 }

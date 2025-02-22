@@ -15,7 +15,8 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen text-white relative">
+    <div className="min-h-screen text-white relative overflow-hidden">
+      <div className="glow-effect" />
       <Header />
       <BackgroundPaths
         title="DiagnAI"
@@ -28,7 +29,14 @@ export default function Home() {
         <ContactSection />
       </main>
       <Footer />
+      <div className="fixed bottom-0 left-0 right-0 h-64 pointer-events-none">
+        <div
+          className="absolute inset-0 bg-gradient-to-t from-purple-900 via-purple-600 to-transparent"
+          style={{
+            filter: "blur(100px)",
+          }}
+        />
+      </div>
     </div>
   )
 }
-

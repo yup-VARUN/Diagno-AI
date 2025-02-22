@@ -77,16 +77,48 @@
   }
 }
 
-.animate-glow {
-  animation: glow 4s ease-in-out infinite alternate;
+.glow-effect {
+  position: fixed;
+  bottom: -100px;
+  left: -20%;
+  right: -20%;
+  height: 400px;
+  background: linear-gradient(to top, 
+    rgba(147, 51, 234, 0.7), 
+    rgba(147, 51, 234, 0.3), 
+    transparent
+  );
+  filter: blur(100px);
+  transform: translateY(40%);
+  pointer-events: none;
+  z-index: 1;
 }
 
-@keyframes glow {
-  from {
-    box-shadow: 0 0 0px white;
-  }
-  to {
-    box-shadow: 0 0 20px white;
-  }
+.glow-line {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(147, 51, 234, 0.2),
+    rgba(147, 51, 234, 0.4),
+    rgba(147, 51, 234, 0.6),
+    rgba(147, 51, 234, 0.4),
+    rgba(147, 51, 234, 0.2),
+    transparent
+  );
 }
 
+.glow-line::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: inherit;
+  filter: blur(2px);
+}
