@@ -3,13 +3,13 @@
 import { useRef } from "react"
 import Image from "next/image"
 import { motion, useScroll, useTransform } from "framer-motion"
-import { Headphones, Music, Mic2, Award } from "lucide-react"
+import { Brain, Stethoscope, ClipboardCheck, Activity } from "lucide-react"
 
 const achievements = [
-  { icon: <Headphones className="w-6 h-6" />, label: "Years of Experience", value: "10+" },
-  { icon: <Music className="w-6 h-6" />, label: "Tracks Produced", value: "500+" },
-  { icon: <Mic2 className="w-6 h-6" />, label: "Artists Collaborated", value: "100+" },
-  { icon: <Award className="w-6 h-6" />, label: "Awards Won", value: "15+" },
+  { icon: <Brain className="w-6 h-6" />, label: "AI Powered", value: "24/7" },
+    { icon: <Stethoscope className="w-6 h-6" />, label: "Health Insights", value: "100+" },
+    { icon: <ClipboardCheck className="w-6 h-6" />, label: "Symptoms Analyzed", value: "1000+" },
+    { icon: <Activity className="w-6 h-6" />, label: "Active Users", value: "10K+" },
 ]
 
 export default function AboutSection() {
@@ -37,16 +37,13 @@ export default function AboutSection() {
             />
           </div>
           <div>
-            <h2 className="text-4xl md:text-5xl font-bold mb-6">About drannel</h2>
+            <h2 className="text-4xl md:text-5xl font-bold mb-6">About DiagnAI</h2>
             <p className="text-lg mb-6 text-zinc-300">
-              drannel is not just a beat maker; he's a sonic architect crafting the soundscapes of tomorrow. With a
-              decade of experience and an ear for innovation, drannel pushes the boundaries of what's possible in music
-              production.
+            Understanding your health shouldn’t be complicated. Our AI-driven platform analyzes your past conversations to generate detailed and personalized diagnosis reports, giving you clarity and actionable insights. 
+          Whether you're tracking symptoms, monitoring health patterns, or seeking guidance, our intelligent system ensures accuracy, privacy, and ease of use.
             </p>
             <p className="text-lg mb-8 text-zinc-300">
-              From chart-topping hits to underground anthems, drannel's versatile style and meticulous attention to
-              detail ensure that each beat is not just a track, but a journey waiting to be explored by the right
-              artist.
+            With a seamless and intuitive experience, our AI continuously learns from your interactions to provide smarter, data-driven health assessments. Whether you need a quick overview or an in-depth analysis, our technology translates your conversations into meaningful reports, helping you stay informed and proactive about your well-being. Your health, your data—analyzed with precision and care.
             </p>
             <div className="grid grid-cols-2 gap-6">
               {achievements.map((achievement, index) => (
