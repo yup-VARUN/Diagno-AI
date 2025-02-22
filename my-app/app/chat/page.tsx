@@ -1,7 +1,5 @@
 "use client"
-
 import type React from "react"
-
 import { useState, useRef, useEffect, useCallback } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -26,6 +24,8 @@ export default function ChatPage() {
     },
   ])
   const [input, setInput] = useState("")
+  const [isLoading, setIsLoading] = useState(false)
+  const [disableSend, setDisableSend] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
   const scrollToBottom = useCallback(() => {
@@ -34,11 +34,11 @@ export default function ChatPage() {
 
   useEffect(() => {
     scrollToBottom()
-  }, [scrollToBottom])
+  }, [messages, scrollToBottom])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!input.trim()) return
+    if (!input.trim() || disableSend) return
 
     // Add user message
     const userMessage: Message = {
@@ -49,65 +49,97 @@ export default function ChatPage() {
     }
     setMessages((prev) => [...prev, userMessage])
     setInput("")
+    setDisableSend(true)
+    setIsLoading(true)
 
-    // Simulate AI response
-    setTimeout(() => {
+    try {
+      const response = await fetch('http://127.0.0.1:5000/test', {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ 
+          message: input,
+          mode: 'assistant', // Update mode if needed
+          username: 'USER_ID_HERE' // Replace with actual user ID
+        }),
+      })
+
+      if (!response.ok) throw new Error('Network response failed')
+
+      const data = await response.json()
+      
       const aiMessage: Message = {
         id: (Date.now() + 1).toString(),
-        content: "I understand your concern. Could you please provide more details about your symptoms?",
+        content: data.message,
         role: "assistant",
         timestamp: new Date(),
       }
       setMessages((prev) => [...prev, aiMessage])
-    }, 1000)
+    } catch (error) {
+      console.error('Error:', error)
+      const errorMessage: Message = {
+        id: `error-${Date.now()}`,
+        content: "Sorry, I'm having trouble connecting. Please try again.",
+        role: "assistant",
+        timestamp: new Date(),
+      }
+      setMessages((prev) => [...prev, errorMessage])
+    } finally {
+      setIsLoading(false)
+      setDisableSend(false)
+    }
   }
 
   return (
-    <div className="flex h-screen bg-zinc-950">
-      <div className="flex-1 flex flex-col max-w-4xl mx-auto w-full">
-        <div className="flex-1 overflow-y-auto p-4 space-y-4">
+    <div className="flex flex-col h-screen">
+      <div className="flex-1 overflow-y-auto p-4">
+        <div className="space-y-4">
           {messages.map((message) => (
-            <div
-              key={message.id}
-              className={`flex items-start gap-3 ${message.role === "assistant" ? "justify-start" : "justify-end"}`}
-            >
-              {message.role === "assistant" && (
-                <Avatar>
-                  <AvatarFallback>AI</AvatarFallback>
-                  <AvatarImage src="/ai-avatar.png" />
+            <div key={message.id} className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}>
+              <div className={`max-w-xs lg:max-w-md flex items-start gap-3 ${message.role === "user" ? "flex-row-reverse" : ""}`}>
+                <Avatar className="flex-shrink-0">
+                  {message.role === "assistant" ? (
+                    <>
+                      <AvatarImage src="/ai-avatar.png" />
+                      <AvatarFallback>AI</AvatarFallback>
+                    </>
+                  ) : (
+                    <>
+                      <AvatarImage src="/user-avatar.png" />
+                      <AvatarFallback><User className="h-4 w-4" /></AvatarFallback>
+                    </>
+                  )}
                 </Avatar>
-              )}
-              <Card className={`max-w-[80%] ${message.role === "user" ? "bg-blue-600" : "bg-zinc-800"}`}>
-                <CardContent className="p-3">
-                  <p className="text-sm text-white">{message.content}</p>
-                </CardContent>
-              </Card>
-              {message.role === "user" && (
-                <Avatar>
-                  <AvatarFallback>
-                    <User className="w-4 h-4" />
-                  </AvatarFallback>
-                </Avatar>
-              )}
+                <Card>
+                  <CardContent className="p-4">
+                    <p className="text-sm">{message.content}</p>
+                  </CardContent>
+                </Card>
+              </div>
             </div>
           ))}
           <div ref={messagesEndRef} />
         </div>
-        <div className="p-4 border-t border-zinc-800">
-          <form onSubmit={handleSubmit} className="flex gap-2">
-            <Input
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              placeholder="Type your message..."
-              className="flex-1"
-            />
-            <Button type="submit" size="icon">
-              <Send className="w-4 h-4" />
-            </Button>
-          </form>
-        </div>
       </div>
+      <form onSubmit={handleSubmit} className="border-t p-4">
+        <div className="flex gap-2">
+          <Input
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            placeholder="Type your message..."
+            className="flex-1"
+            disabled={disableSend}
+          />
+          <Button type="submit" disabled={!input.trim() || disableSend}>
+            {isLoading ? (
+              <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+            ) : (
+              <Send className="h-4 w-4" />
+            )}
+          </Button>
+        </div>
+      </form>
     </div>
   )
 }
-
