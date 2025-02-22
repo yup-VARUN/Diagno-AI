@@ -7,7 +7,8 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent } from "@/components/ui/card"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Send, User } from "lucide-react"
+import { Send, User, Mic, Plus } from "lucide-react"
+import { ScrollArea } from "@/components/ui/scroll-area"
 
 interface Message {
   id: string
@@ -16,17 +17,33 @@ interface Message {
   timestamp: Date
 }
 
+interface Chat {
+  id: string
+  name: string
+  messages: Message[]
+}
+
 export default function ChatPage() {
-  const [messages, setMessages] = useState<Message[]>([
+  const [chats, setChats] = useState<Chat[]>([
     {
       id: "1",
-      content: "Hello! I'm DiagnAI, your personal health assistant. How can I help you today?",
-      role: "assistant",
-      timestamp: new Date(),
+      name: "Initial Chat",
+      messages: [
+        {
+          id: "1",
+          content: "Hello! I'm DiagnAI, your personal health assistant. How can I help you today?",
+          role: "assistant",
+          timestamp: new Date(),
+        },
+      ],
     },
   ])
+  const [currentChatId, setCurrentChatId] = useState("1")
   const [input, setInput] = useState("")
+  const [isListening, setIsListening] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
+
+  const currentChat = chats.find((chat) => chat.id === currentChatId) || chats[0]
 
   const scrollToBottom = useCallback(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
@@ -40,14 +57,18 @@ export default function ChatPage() {
     e.preventDefault()
     if (!input.trim()) return
 
-    // Add user message
-    const userMessage: Message = {
+    const newMessage: Message = {
       id: Date.now().toString(),
       content: input,
       role: "user",
       timestamp: new Date(),
     }
-    setMessages((prev) => [...prev, userMessage])
+
+    setChats((prevChats) =>
+      prevChats.map((chat) =>
+        chat.id === currentChatId ? { ...chat, messages: [...chat.messages, newMessage] } : chat,
+      ),
+    )
     setInput("")
 
     // Simulate AI response
@@ -58,15 +79,77 @@ export default function ChatPage() {
         role: "assistant",
         timestamp: new Date(),
       }
-      setMessages((prev) => [...prev, aiMessage])
+      setChats((prevChats) =>
+        prevChats.map((chat) =>
+          chat.id === currentChatId ? { ...chat, messages: [...chat.messages, aiMessage] } : chat,
+        ),
+      )
     }, 1000)
+  }
+
+  const handleMicClick = () => {
+    if (!isListening) {
+      setIsListening(true)
+      const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)()
+      recognition.lang = "en-US"
+      recognition.start()
+
+      recognition.onresult = (event: SpeechRecognitionEvent) => {
+        const transcript = event.results[0][0].transcript
+        setInput(transcript)
+      }
+
+      recognition.onend = () => {
+        setIsListening(false)
+      }
+    } else {
+      setIsListening(false)
+    }
+  }
+
+  const createNewChat = () => {
+    const newChat: Chat = {
+      id: Date.now().toString(),
+      name: `Chat ${chats.length + 1}`,
+      messages: [],
+    }
+    setChats((prevChats) => [...prevChats, newChat])
+    setCurrentChatId(newChat.id)
+  }
+
+  const handleDiagnoseNow = () => {
+    // Functionality to be implemented
+    console.log("Diagnose Now button clicked")
   }
 
   return (
     <div className="flex h-screen bg-zinc-950">
-      <div className="flex-1 flex flex-col max-w-4xl mx-auto w-full">
+      {/* Sidebar */}
+      <div className="w-64 bg-zinc-900 p-4 flex flex-col">
+        <Button onClick={createNewChat} className="w-full mb-4">
+          <Plus className="w-4 h-4 mr-2" /> New Chat
+        </Button>
+        <ScrollArea className="flex-grow">
+          {chats.map((chat) => (
+            <Button
+              key={chat.id}
+              variant="ghost"
+              className={`w-full justify-start mb-2 ${currentChatId === chat.id ? "bg-zinc-800" : ""}`}
+              onClick={() => setCurrentChatId(chat.id)}
+            >
+              {chat.name}
+            </Button>
+          ))}
+        </ScrollArea>
+        <Button onClick={handleDiagnoseNow} className="w-full mt-4 bg-green-600 hover:bg-green-700">
+          Diagnose Now
+        </Button>
+      </div>
+
+      {/* Chat Interface */}
+      <div className="flex-1 flex flex-col">
         <div className="flex-1 overflow-y-auto p-4 space-y-4">
-          {messages.map((message) => (
+          {currentChat.messages.map((message) => (
             <div
               key={message.id}
               className={`flex items-start gap-3 ${message.role === "assistant" ? "justify-start" : "justify-end"}`}
@@ -101,6 +184,14 @@ export default function ChatPage() {
               placeholder="Type your message..."
               className="flex-1"
             />
+            <Button
+              type="button"
+              size="icon"
+              onClick={handleMicClick}
+              variant={isListening ? "destructive" : "default"}
+            >
+              <Mic className="w-4 h-4" />
+            </Button>
             <Button type="submit" size="icon">
               <Send className="w-4 h-4" />
             </Button>
@@ -110,4 +201,3 @@ export default function ChatPage() {
     </div>
   )
 }
-
